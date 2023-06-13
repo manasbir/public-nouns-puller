@@ -12,7 +12,6 @@ abigen!(
     IERC721,
     r#"[
         function tokenURI(uint256 id) external view returns (string tokenURI)
-        function contractURI() external view returns (string contractURI)
     ]"#,
 );
 
@@ -22,7 +21,6 @@ const NOUN_ADDRESS: &str = "0x93ecac71499147627DFEc6d0E494d50fCFFf10EE";
 async fn main() -> Result<()> {
     get_past_nouns().await;
     listen_for_new_nouns().await;
-
 
     Ok(())
 }
