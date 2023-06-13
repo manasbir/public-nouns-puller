@@ -2054,9 +2054,11 @@ dependencies = [
 name = "public-nouns-puller"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.2",
  "dotenv",
  "ethers",
  "eyre",
+ "serde_json",
  "tokio",
 ]
 
