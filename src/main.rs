@@ -4,7 +4,7 @@ use ethers::{
     providers::{Http, Middleware, Provider, StreamExt}, prelude::{abigen, types::U256},
 };
 use eyre::Result;
-use std::{sync::Arc, fs::File, str::from_utf8, io::Write};
+use std::{sync::Arc, fs::File, str::from_utf8, io::Write, path::Path};
 use dotenv::dotenv;
 use serde_json::Value;
 
@@ -88,6 +88,9 @@ fn process_uri(base64_string: &str, index: U256) {
     let decoded = general_purpose::STANDARD.decode(&base64_string[29..]).unwrap();
     let json: Value = serde_json::from_str(from_utf8(&decoded).unwrap()).unwrap();
     let image = general_purpose::STANDARD.decode(&json["image"].to_string()[27..&json["image"].to_string().len()-1]).unwrap();
+    if Path::new(&format!("./nouns/public-noun-{}.svg", index)).exists() {
+        return;
+    }
     let res = File::create(format!("nouns/public-noun-{}.svg", index)); 
     match res {
         Ok(mut file) => {
