@@ -1,12 +1,13 @@
-use base64::{Engine as _, engine::general_purpose};
+use base64::{engine::general_purpose, Engine as _};
+use dotenv::dotenv;
 use ethers::{
     core::types::{Filter, H160},
-    providers::{Http, Middleware, Provider, StreamExt}, prelude::{abigen, types::U256},
+    prelude::{abigen, types::U256},
+    providers::{Http, Middleware, Provider, StreamExt},
 };
 use eyre::Result;
-use std::{sync::Arc, fs::File, str::from_utf8, io::Write, path::Path};
-use dotenv::dotenv;
 use serde_json::Value;
+use std::{fs::File, io::Write, path::Path, str::from_utf8, sync::Arc};
 
 abigen!(
     IERC721,
@@ -29,8 +30,11 @@ async fn listen_for_new_nouns() {
     dotenv().ok();
     let provider = get_client().await;
     let client = Arc::new(provider);
-    let noun_contract = IERC721::new(NOUN_ADDRESS.parse::<H160>().expect("wrong address"), client.clone());
-    
+    let noun_contract = IERC721::new(
+        NOUN_ADDRESS.parse::<H160>().expect("wrong address"),
+        client.clone(),
+    );
+
     let filter = Filter::new()
         .address(noun_contract.address())
         .event("NounCreated(uint256,(uint48,uint48,uint48,uint48,uint48))");
@@ -51,16 +55,17 @@ async fn listen_for_new_nouns() {
             }
         }
     }
-    
-
 }
 
 async fn get_past_nouns() {
     dotenv().ok();
     let provider = get_client().await;
     let client = Arc::new(provider);
-    let noun_contract = IERC721::new(NOUN_ADDRESS.parse::<H160>().expect("wrong address"), client.clone());
-    
+    let noun_contract = IERC721::new(
+        NOUN_ADDRESS.parse::<H160>().expect("wrong address"),
+        client.clone(),
+    );
+
     let filter = Filter::new()
         .address(noun_contract.address())
         .event("NounCreated(uint256,(uint48,uint48,uint48,uint48,uint48))")
@@ -85,13 +90,17 @@ async fn get_past_nouns() {
 }
 
 fn process_uri(base64_string: &str, index: U256) {
-    let decoded = general_purpose::STANDARD.decode(&base64_string[29..]).unwrap();
+    let decoded = general_purpose::STANDARD
+        .decode(&base64_string[29..])
+        .unwrap();
     let json: Value = serde_json::from_str(from_utf8(&decoded).unwrap()).unwrap();
-    let image = general_purpose::STANDARD.decode(&json["image"].to_string()[27..&json["image"].to_string().len()-1]).unwrap();
+    let image = general_purpose::STANDARD
+        .decode(&json["image"].to_string()[27..&json["image"].to_string().len() - 1])
+        .unwrap();
     if Path::new(&format!("./nouns/public-noun-{}.svg", index)).exists() {
         return;
     }
-    let res = File::create(format!("nouns/public-noun-{}.svg", index)); 
+    let res = File::create(format!("nouns/public-noun-{}.svg", index));
     match res {
         Ok(mut file) => {
             // println!("file created");
@@ -99,12 +108,13 @@ fn process_uri(base64_string: &str, index: U256) {
         }
         Err(e) => {
             println!("error: {:?}", e);
-            return;
         }
     }
 }
 
-async fn get_client() -> Provider<Http>  {
-    let provider = Provider::<Http>::try_from(std::env::var("PROVIDER").expect("PROVIDER not provided")).expect("provider incorrect");
-    return provider;
+async fn get_client() -> Provider<Http> {
+    let provider =
+        Provider::<Http>::try_from(std::env::var("PROVIDER").expect("PROVIDER not provided"))
+            .expect("provider incorrect");
+    provider
 }
